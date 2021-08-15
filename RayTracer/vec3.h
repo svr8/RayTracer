@@ -17,6 +17,9 @@ public:
 	double x() const { return e[0]; }
 	double y() const { return e[1]; }
 	double z() const { return e[2]; }
+	void x(const double v) { e[0] = v; }
+	void y(const double v) { e[1] = v; }
+	void z(const double v) { e[2] = v; }
 	void set(const double e0, const double e1, const double e2) {
 		e[0] = e0;
 		e[1] = e1;

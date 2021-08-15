@@ -10,12 +10,14 @@
 #include <fstream>
 #include <thread>
 #include <vector>
+#include <time.h>
 
-#define THREAD_COUNT 4
-#define IMAGE_WIDTH 200
+#define MIN_HIT_LIMIT 0.001
+#define THREAD_COUNT 20
+#define IMAGE_WIDTH 300
 #define ASPECT_RATIO 1.5 // 3:2
-#define SAMPLES_PER_PIXEL 125
-#define MAX_DEPTH 40
+#define SAMPLES_PER_PIXEL 10
+#define MAX_DEPTH 30
 
 int current_progress = 0;
 int total_progress = 100;
@@ -27,7 +29,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 	if (depth <= 0)
 		return color(0, 0, 0);
 
-	if (world.hit(r, 0.001, infinity, rec)) {
+	if (world.hit(r, MIN_HIT_LIMIT, infinity, rec)) {
 		ray scattered;
 		color attenuation;
 		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
@@ -117,7 +119,6 @@ void process_matrix_rows(const int start_row, const int end_row, const int image
 				ray r = cam.get_ray(u, v);
 				pixel_color += ray_color(r, world, max_depth);
 			}
-
 			output_matrix[j][i] = format_color(pixel_color, samples_per_pixel);
 		}
 	}
@@ -163,7 +164,9 @@ int main() {
 
 	// render
 	color** output_matrix = image_matrix(image_width, image_height);
+	clock_t tStart = clock();
 	multithreaded_raytracing(THREAD_COUNT, image_width, image_height, output_matrix, samples_per_pixel, max_depth, world, cam);
+	clock_t tEnd = clock();
 	
 	// setup output file stream
 	std::ofstream outdata;
@@ -188,6 +191,7 @@ int main() {
 	outdata.close();
 
 	std::cerr << "\nDone.\n";
+	std::cout << "\nProcessing Time: " << (double)(tEnd - tStart) / CLOCKS_PER_SEC << "s\n";
 	std::cout << "Ray Tracing completed.\n";
 
 	return 0;
